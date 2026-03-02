@@ -1,0 +1,16 @@
+{
+    "feature_columns": [
+        "rpm",
+        "voltage_v",
+        "current_a",
+        "power_w",
+        "vibration_rms",
+        "temperature_c",
+        "thrust_gradient",
+        "current_gradient"
+    ],
+    "target": "thrust_kgf",
+    "rmse": 0.05165177036498292,
+    "mae": 0.040308134366834766,
+    "r2": 0.9805092656294284
+}
