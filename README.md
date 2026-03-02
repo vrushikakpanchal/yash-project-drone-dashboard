@@ -1,6 +1,6 @@
 ## AI-Enabled Drone Thrust Measurement System
 
-### 1. Project idea (in simple words)
+### 1. Project idea
 
 This project is a **dashboard for testing drone motors**.
 
@@ -42,7 +42,7 @@ So an engineer, student, or hobbyist can **quickly see** if a drone motor is per
 
 ---
 
-### 3. How it works (step by step, high level)
+### 3. How it works 
 
 1. **Motor and sensors**  
    A motor test stand (real or simulated) provides sensor values such as:
@@ -130,7 +130,7 @@ On the dashboard you see:
   - **Current** (A)
   - **Power** (W)
 
-- **AI analysis panels** (depending on the exact components used)
+- **AI analysis panels** 
   - Motor **health score**
   - **Anomaly status** (normal / warning / abnormal)
   - **Remaining useful life** estimate
@@ -144,7 +144,7 @@ If the backend is not running or not reachable, gauges stay at zero and the page
 
 ---
 
-### 6. Key features (non-technical summary)
+### 6. Key features
 
 - **Live dashboard**  
   See thrust, RPM, and electrical values that update automatically.
@@ -175,7 +175,7 @@ Some ways this project can be used:
 
 ---
 
-### 8. System overview (slightly technical, still simple)
+### 8. System overview 
 
 #### 8.1 Frontend (Next.js)
 
