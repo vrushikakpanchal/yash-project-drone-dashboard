@@ -27,26 +27,30 @@ export default function DataLogGraph() {
   return (
     <div
       style={{
-        background: "var(--bg-card)",
-        border: "1px solid var(--border)",
-        borderRadius: "10px",
-        padding: "10px 14px",
+        background: "rgba(15, 23, 42, 0.7)",
+        border: "1px solid rgba(255, 255, 255, 0.1)",
+        borderRadius: "12px",
+        padding: "14px 18px",
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        gap: "6px",
+        gap: "10px",
         boxSizing: "border-box",
         overflow: "hidden",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
       }}
     >
       {/* ── Header row: title + tabs ── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, marginBottom: "2px" }}>
         <h2
           style={{
-            fontSize: "0.72rem",
+            fontSize: "14px",
+            fontFamily: "sans-serif",
             letterSpacing: "0.12em",
             color: "var(--text-secondary)",
             fontWeight: 700,
+            margin: 0,
           }}
         >
           DATA LOG & ANALYSIS
@@ -76,7 +80,7 @@ export default function DataLogGraph() {
             flex: 1,
             minHeight: 0,
             display: "flex",
-            gap: "10px",
+            gap: "12px",
             overflow: "hidden",
           }}
         >
@@ -110,16 +114,25 @@ export default function DataLogGraph() {
                   label={{ value: "RPM", angle: 90, position: "insideRight", fill: "#2196f3", fontSize: 9, dx: -6 }}
                 />
                 <Tooltip
-                  contentStyle={{ background: "#0a1220", border: "1px solid #1e3a5f", borderRadius: "6px", fontSize: "0.68rem", padding: "6px 10px" }}
+                  contentStyle={{
+                    background: "rgba(15, 23, 42, 0.85)",
+                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                    fontFamily: "sans-serif",
+                    padding: "8px 12px",
+                    backdropFilter: "blur(8px)",
+                    WebkitBackdropFilter: "blur(8px)",
+                  }}
                   labelStyle={{ color: "#7fb3d3", marginBottom: "2px" }}
                   itemStyle={{ color: "#ccc" }}
                 />
                 <Legend
-                  wrapperStyle={{ fontSize: "0.68rem", paddingTop: "2px" }}
+                  wrapperStyle={{ fontSize: "12px", fontFamily: "sans-serif", paddingTop: "2px" }}
                   formatter={(v) => <span style={{ color: "#7fb3d3" }}>{v}</span>}
                 />
-                <Line yAxisId="thrust" type="monotone" dataKey="thrust" name="Thrust (g)" stroke="#4caf50" dot={false} strokeWidth={1.8} isAnimationActive={false} />
-                <Line yAxisId="rpm" type="monotone" dataKey="rpm" name="RPM" stroke="#2196f3" dot={false} strokeWidth={1.8} isAnimationActive={false} />
+                <Line yAxisId="thrust" type="monotone" dataKey="thrust" name="Thrust (g)" stroke="#4caf50" fill="#4caf50" fillOpacity={0.1} dot={false} strokeWidth={2.5} isAnimationActive={false} />
+                <Line yAxisId="rpm" type="monotone" dataKey="rpm" name="RPM" stroke="#2196f3" fill="#2196f3" fillOpacity={0.1} dot={false} strokeWidth={2.5} isAnimationActive={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -132,11 +145,11 @@ export default function DataLogGraph() {
               flexShrink: 0,
               background: "#060d1a",
               border: "1px solid #152540",
-              borderRadius: "6px",
-              padding: "8px 10px",
+              borderRadius: "8px",
+              padding: "10px 12px",
               overflowY: "auto",
               fontFamily: "'Courier New', Courier, monospace",
-              fontSize: "0.6rem",
+              fontSize: "12px",
               color: "#6aafcc",
               lineHeight: 1.7,
             }}
@@ -179,7 +192,8 @@ function TabButton({ active, onClick, label, badge, loading }) {
       style={{
         position: "relative",
         padding: "4px 10px",
-        fontSize: "0.62rem",
+        fontSize: "12px",
+        fontFamily: "sans-serif",
         fontWeight: 600,
         border: `1px solid ${active ? "var(--accent-blue)" : "var(--border)"}`,
         borderRadius: "4px",

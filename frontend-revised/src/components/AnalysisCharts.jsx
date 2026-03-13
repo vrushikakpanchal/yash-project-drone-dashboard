@@ -14,11 +14,14 @@ function fmtTime(iso) {
 
 const tooltipStyle = {
   contentStyle: {
-    background: "#0a1220",
-    border: "1px solid #1e3a5f",
-    borderRadius: "6px",
-    fontSize: "0.65rem",
-    padding: "5px 9px",
+    background: "rgba(15, 23, 42, 0.85)",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    borderRadius: "8px",
+    fontSize: "12px",
+    fontFamily: "sans-serif",
+    padding: "6px 10px",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
   },
   labelStyle: { color: "#7fb3d3" },
   itemStyle:  { color: "#ccc" },
@@ -33,7 +36,7 @@ const axisProps = {
 function ChartTitle({ children, color = "#7fb3d3" }) {
   return (
     <div style={{
-      fontSize: "0.62rem", fontWeight: 700,
+      fontSize: "14px", fontFamily: "sans-serif", fontWeight: 700,
       letterSpacing: "0.1em", color,
       marginBottom: "2px", textTransform: "uppercase",
     }}>
@@ -51,8 +54,8 @@ function StatBadge({ label, value, color }) {
       padding: "3px 8px",
       display: "flex", flexDirection: "column", alignItems: "center",
     }}>
-      <span style={{ fontSize: "0.55rem", color: "#5a8aaa", letterSpacing: "0.06em" }}>{label}</span>
-      <span style={{ fontSize: "0.8rem", fontWeight: 700, color }}>{value}</span>
+      <span style={{ fontSize: "12px", fontFamily: "sans-serif", color: "#5a8aaa", letterSpacing: "0.06em" }}>{label}</span>
+      <span style={{ fontSize: "12px", fontFamily: "monospace", fontWeight: 700, color: "#fff" }}>{value}</span>
     </div>
   );
 }
@@ -81,8 +84,8 @@ function ThrustChart({ data }) {
           <YAxis yAxisId="t" domain={[0, "auto"]} {...axisProps} tick={{ ...axisProps.tick, fill: "#4caf50" }} />
           <YAxis yAxisId="r" orientation="right" domain={[0, "auto"]} {...axisProps} tick={{ ...axisProps.tick, fill: "#2196f3" }} />
           <Tooltip {...tooltipStyle} />
-          <Line yAxisId="t" type="monotone" dataKey="predicted_thrust" name="Thrust (g)" stroke="#4caf50" dot={false} strokeWidth={1.5} isAnimationActive={false} />
-          <Line yAxisId="r" type="monotone" dataKey="rpm"              name="RPM"        stroke="#2196f3" dot={false} strokeWidth={1.5} isAnimationActive={false} />
+          <Line yAxisId="t" type="monotone" dataKey="predicted_thrust" name="Thrust (g)" stroke="#4caf50" fill="#4caf50" fillOpacity={0.1} dot={false} strokeWidth={2.5} isAnimationActive={false} />
+          <Line yAxisId="r" type="monotone" dataKey="rpm"              name="RPM"        stroke="#2196f3" fill="#2196f3" fillOpacity={0.1} dot={false} strokeWidth={2.5} isAnimationActive={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -121,7 +124,9 @@ function AnomalyChart({ data }) {
             dataKey="severity_score"
             name="Severity"
             stroke="#ff9800"
-            strokeWidth={1.5}
+            fill="#ff9800"
+            fillOpacity={0.1}
+            strokeWidth={2.5}
             isAnimationActive={false}
             dot={(props) => {
               const { cx, cy, payload } = props;
@@ -159,8 +164,8 @@ function HealthChart({ data }) {
           <YAxis yAxisId="h" domain={[0, 100]}   {...axisProps} tick={{ ...axisProps.tick, fill: "#4caf50" }} />
           <YAxis yAxisId="r" orientation="right" domain={[0, "auto"]} {...axisProps} tick={{ ...axisProps.tick, fill: "#00bcd4" }} />
           <Tooltip {...tooltipStyle} />
-          <Line yAxisId="h" type="monotone" dataKey="health_score" name="Health %" stroke="#4caf50" dot={false} strokeWidth={1.5} isAnimationActive={false} />
-          <Line yAxisId="r" type="monotone" dataKey="rul_hours"    name="RUL (hrs)" stroke="#00bcd4" dot={false} strokeWidth={1.5} isAnimationActive={false} />
+          <Line yAxisId="h" type="monotone" dataKey="health_score" name="Health %" stroke="#4caf50" fill="#4caf50" fillOpacity={0.1} dot={false} strokeWidth={2.5} isAnimationActive={false} />
+          <Line yAxisId="r" type="monotone" dataKey="rul_hours"    name="RUL (hrs)" stroke="#00bcd4" fill="#00bcd4" fillOpacity={0.1} dot={false} strokeWidth={2.5} isAnimationActive={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -181,11 +186,11 @@ function Charts({ thrust, anomaly, health, sessionInfo }) {
           display: "flex", gap: "8px", flexWrap: "wrap",
           padding: "5px 8px",
           background: "#0a1824", border: "1px solid #1a3050",
-          borderRadius: "6px", fontSize: "0.6rem", color: "var(--text-secondary)",
+          borderRadius: "6px", fontSize: "12px", fontFamily: "sans-serif", color: "var(--text-secondary)",
         }}>
-          <span>Duration: <strong style={{ color: "var(--text-primary)" }}>{sessionInfo.duration_seconds}s</strong></span>
-          <span>Points:   <strong style={{ color: "var(--text-primary)" }}>{sessionInfo.data_points}</strong></span>
-          <span>Started:  <strong style={{ color: "var(--text-primary)" }}>{new Date(sessionInfo.start_time).toLocaleTimeString()}</strong></span>
+          <span>Duration: <strong style={{ color: "#fff", fontFamily: "monospace" }}>{sessionInfo.duration_seconds}s</strong></span>
+          <span>Points:   <strong style={{ color: "#fff", fontFamily: "monospace" }}>{sessionInfo.data_points}</strong></span>
+          <span>Started:  <strong style={{ color: "#fff", fontFamily: "monospace" }}>{new Date(sessionInfo.start_time).toLocaleTimeString()}</strong></span>
         </div>
       )}
       <ThrustChart  data={thrust}  />
@@ -213,7 +218,7 @@ export default function AnalysisCharts() {
           borderRadius: "50%",
           animation: "spin 0.8s linear infinite",
         }} />
-        <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>
+        <div style={{ fontSize: "12px", fontFamily: "sans-serif", color: "var(--text-secondary)" }}>
           Fetching analysis data...
         </div>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -229,11 +234,11 @@ export default function AnalysisCharts() {
         justifyContent: "center", flexDirection: "column", gap: "10px",
       }}>
         <div style={{ fontSize: "2rem" }}>🚨</div>
-        <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--text-primary)" }}>
+        <div style={{ fontSize: "14px", fontFamily: "sans-serif", fontWeight: 700, color: "var(--text-primary)" }}>
           No Analysis Data Yet
         </div>
         <div style={{
-          fontSize: "0.68rem", color: "var(--text-secondary)",
+          fontSize: "12px", fontFamily: "sans-serif", color: "var(--text-secondary)",
           textAlign: "center", maxWidth: "220px", lineHeight: 1.7,
         }}>
           Start a stream session, then press{" "}

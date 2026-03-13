@@ -12,10 +12,10 @@ export default function ControlStatus() {
   return (
     <div
       style={{
-        background: "linear-gradient(145deg, rgba(12, 21, 40, 0.95), rgba(7, 13, 28, 0.98))",
-        border: "1px solid rgba(26, 52, 88, 0.6)",
-        borderRadius: "16px",
-        padding: "20px 16px",
+        background: "rgba(15, 23, 42, 0.7)",
+        border: "1px solid rgba(255, 255, 255, 0.1)",
+        borderRadius: "12px",
+        padding: "16px 18px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -23,17 +23,18 @@ export default function ControlStatus() {
         boxSizing: "border-box",
         overflow: "hidden",
         backdropFilter: "blur(10px)",
-        boxShadow: "0 8px 32px rgba(0, 20, 60, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
+        WebkitBackdropFilter: "blur(10px)",
       }}
     >
       {/* Section Title */}
       <h2
         style={{
-          fontSize: "0.75rem",
+          fontSize: "14px",
+          fontFamily: "sans-serif",
           letterSpacing: "0.15em",
           color: "var(--text-secondary)",
           fontWeight: 700,
-          marginBottom: "16px",
+          marginBottom: "12px",
           textTransform: "uppercase",
         }}
       >
@@ -126,8 +127,9 @@ export default function ControlStatus() {
               borderRadius: "8px",
               padding: "4px 16px",
               fontSize: "1rem",
+              fontFamily: "monospace",
               fontWeight: 700,
-              color: "var(--text-primary)",
+              color: "#fff",
               letterSpacing: "0.05em",
               textAlign: "center",
               boxShadow: "inset 0 2px 4px rgba(0, 0, 0, 0.3)",
@@ -225,14 +227,13 @@ function StatusRow({ icon, label, value, valueColor, iconColor }) {
         background: "rgba(15, 24, 41, 0.6)",
         border: "1px solid rgba(26, 52, 88, 0.3)",
         borderRadius: "6px",
-        fontSize: "0.68rem",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
         <span style={{ color: iconColor, fontSize: "0.85rem" }}>{icon}</span>
-        <span style={{ color: "var(--text-secondary)" }}>{label}</span>
+        <span style={{ color: "var(--text-secondary)", fontSize: "12px", fontFamily: "sans-serif" }}>{label}</span>
       </div>
-      <span style={{ color: valueColor, fontWeight: 700, fontSize: "0.65rem" }}>{value}</span>
+      <span style={{ color: valueColor, fontWeight: 700, fontSize: "12px", fontFamily: "monospace" }}>{value}</span>
     </div>
   );
 }

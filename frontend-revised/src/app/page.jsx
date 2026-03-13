@@ -31,8 +31,8 @@ export default function DashboardPage() {
         height: "100vh",
         display: "flex",
         flexDirection: "column",
-        padding: "10px 12px",
-        gap: "8px",
+        padding: "16px 20px",
+        gap: "12px",
         background: "var(--bg-primary)",
         overflow: "hidden",
         boxSizing: "border-box",
@@ -42,12 +42,16 @@ export default function DashboardPage() {
       <h1
         style={{
           textAlign: "center",
-          fontSize: "1.15rem",
-          fontWeight: 600,
+          fontSize: "1.75rem",
+          fontWeight: 700,
           color: "var(--text-primary)",
-          letterSpacing: "0.06em",
+          letterSpacing: "0.08em",
           flexShrink: 0,
-          lineHeight: 1,
+          lineHeight: 1.2,
+          fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif",
+          textTransform: "uppercase",
+          margin: 0,
+          paddingBottom: "4px",
         }}
       >
         AI-Enabled Drone Thrust Measurement System
@@ -58,7 +62,7 @@ export default function DashboardPage() {
         style={{
           display: "grid",
           gridTemplateColumns: "240px 1fr",
-          gap: "8px",
+          gap: "12px",
           flex: 1,
           minHeight: 0,
         }}
@@ -71,7 +75,7 @@ export default function DashboardPage() {
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "8px",
+            gap: "12px",
             height: "100%",
             minHeight: 0,
             overflow: "hidden",
@@ -82,7 +86,7 @@ export default function DashboardPage() {
             style={{
               display: "grid",
               gridTemplateColumns: "1fr 260px",
-              gap: "8px",
+              gap: "12px",
               height: "320px",
               flexShrink: 0,
               minHeight: "320px",
@@ -98,7 +102,7 @@ export default function DashboardPage() {
             style={{
               flex: 1,
               minHeight: 0,
-              maxHeight: "calc(100% - 328px)",
+              maxHeight: "calc(100% - 332px)",
               overflow: "hidden",
             }}
           >

@@ -2,21 +2,23 @@
 import { useWebSocket } from "@/context/WebSocketContext";
 
 const cardStyle = {
-  background: "var(--bg-card)",
-  border: "1px solid var(--border)",
-  borderRadius: "10px",
-  padding: "12px 16px",
+  background: "rgba(15, 23, 42, 0.7)",
+  border: "1px solid rgba(255, 255, 255, 0.1)",
+  borderRadius: "12px",
+  padding: "16px 18px",
   height: "100%",
   display: "flex",
   flexDirection: "column",
-  gap: "8px",
+  gap: "10px",
   boxSizing: "border-box",
+  backdropFilter: "blur(10px)",
+  WebkitBackdropFilter: "blur(10px)",
 };
 
 // ── THRUST ARC GAUGE ─────────────────────────────────────────
 function ThrustGauge({ value, max = 1200 }) {
   const pct = Math.min(Math.max(value / max, 0), 1);
-  const cx = 85, cy = 88, r = 68;
+  const cx = 85, cy = 85, r = 68;
   const startDeg = -220;
   const sweepDeg = 260;
 
@@ -32,47 +34,147 @@ function ThrustGauge({ value, max = 1200 }) {
   };
 
   const fillEnd = startDeg + sweepDeg * pct;
+  const needleDeg = startDeg + sweepDeg * pct;
+  const needleLen = r - 12;
+  const needleTip = {
+    x: cx + needleLen * Math.cos(toRad(needleDeg)),
+    y: cy + needleLen * Math.sin(toRad(needleDeg)),
+  };
+  const baseWidth = 5;
+  const baseLeft = {
+    x: cx - baseWidth * Math.sin(toRad(needleDeg)),
+    y: cy + baseWidth * Math.cos(toRad(needleDeg)),
+  };
+  const baseRight = {
+    x: cx + baseWidth * Math.sin(toRad(needleDeg)),
+    y: cy - baseWidth * Math.cos(toRad(needleDeg)),
+  };
+  const needlePoints = `${baseLeft.x},${baseLeft.y} ${needleTip.x},${needleTip.y} ${baseRight.x},${baseRight.y}`;
+
+  const scaleLabels = [100, 200, 300, 400, 500, 700, 800, 900, 1000, 1100, 1200];
+  const tickValues = [];
+  for (let v = 100; v <= 1200; v += 50) {
+    if (!scaleLabels.includes(v)) tickValues.push(v);
+  }
+
+  const peakHoldTopStyle = {
+    position: "absolute",
+    top: "6px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    background: "#e6a800",
+    borderRadius: "6px",
+    padding: "2px 8px",
+    fontSize: "0.58rem",
+    color: "#1a1a1a",
+    whiteSpace: "nowrap",
+    letterSpacing: "0.04em",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+  };
+  const peakHoldBottomStyle = {
+    position: "absolute",
+    bottom: "6px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    background: "#2a2f38",
+    borderRadius: "6px",
+    padding: "2px 8px",
+    fontSize: "0.58rem",
+    color: "#e4f0fb",
+    whiteSpace: "nowrap",
+    letterSpacing: "0.04em",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+  };
 
   return (
     <div style={{ position: "relative", width: "170px", height: "170px", flexShrink: 0 }}>
-      <svg width="170" height="170" viewBox="0 0 170 170">
-        {/* Track */}
+      <svg width="170" height="170" viewBox="0 0 170 170" shapeRendering="geometricPrecision">
+        <defs>
+          <linearGradient id="thrustGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#1a5a8a" />
+            <stop offset="100%" stopColor="#4dd0e1" />
+          </linearGradient>
+        </defs>
+
+        {/* Track – faint light grey arc */}
         <path
           d={arcPath(startDeg, startDeg + sweepDeg, r)}
           fill="none"
-          stroke="#162a44"
-          strokeWidth="13"
+          stroke="#5a6c7a"
+          strokeWidth="2.5"
           strokeLinecap="round"
         />
-        {/* Fill */}
+
+        {/* Minor tick marks */}
+        {tickValues.map((v) => {
+          const ang = startDeg + sweepDeg * (v / max);
+          const outerR = r + 4;
+          const innerR = r - 2;
+          const ox = cx + outerR * Math.cos(toRad(ang));
+          const oy = cy + outerR * Math.sin(toRad(ang));
+          const ix = cx + innerR * Math.cos(toRad(ang));
+          const iy = cy + innerR * Math.sin(toRad(ang));
+          return (
+            <line key={v} x1={ix} y1={iy} x2={ox} y2={oy} stroke="#5a6c7a" strokeWidth="1" strokeLinecap="round" />
+          );
+        })}
+
+        {/* Fill – blue gradient, slightly thicker */}
         {pct > 0 && (
           <path
             d={arcPath(startDeg, fillEnd, r)}
             fill="none"
-            stroke="var(--accent-blue)"
-            strokeWidth="13"
+            stroke="url(#thrustGradient)"
+            strokeWidth="5"
             strokeLinecap="round"
           />
         )}
+
+        {/* Scale labels */}
+        {scaleLabels.map((label) => {
+          const ang = startDeg + sweepDeg * (label / max);
+          const tx = cx + (r + 14) * Math.cos(toRad(ang));
+          const ty = cy + (r + 14) * Math.sin(toRad(ang));
+          return (
+            <text
+              key={label}
+              x={tx}
+              y={ty}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fill="#9aadb8"
+              fontSize="7"
+              fontFamily="sans-serif"
+              fontWeight="600"
+              letterSpacing="0.03em"
+              fontVariant="tabular-nums"
+              transform={`rotate(${ang + 90} ${tx} ${ty})`}
+            >
+              {label}
+            </text>
+          );
+        })}
+
+        {/* Needle – triangular, luminous blue-white */}
+        <polygon
+          points={needlePoints}
+          fill="#a8d4f0"
+          stroke="#b8e0ff"
+          strokeWidth="0.8"
+          strokeLinejoin="round"
+        />
+
+        {/* Center hub */}
+        <circle cx={cx} cy={cy} r="5.5" fill="#8bc9f0" stroke="#a8d4f0" strokeWidth="1" />
       </svg>
 
-      {/* Peak Hold Badge */}
-      <div
-        style={{
-          position: "absolute",
-          top: "6px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          background: "#5a3c00",
-          border: "1px solid #cc8800",
-          borderRadius: "4px",
-          padding: "2px 8px",
-          fontSize: "0.58rem",
-          color: "#ffaa00",
-          whiteSpace: "nowrap",
-          letterSpacing: "0.04em",
-        }}
-      >
+      {/* Top Peak Hold */}
+      <div style={peakHoldTopStyle}>
+        ▲ Peak Hold
+      </div>
+
+      {/* Bottom Peak Hold */}
+      <div style={peakHoldBottomStyle}>
         ▲ Peak Hold
       </div>
 
@@ -86,13 +188,13 @@ function ThrustGauge({ value, max = 1200 }) {
           textAlign: "center",
         }}
       >
-        <div style={{ fontSize: "0.6rem", color: "var(--text-secondary)", letterSpacing: "0.1em" }}>
+        <div style={{ fontSize: "12px", fontFamily: "sans-serif", color: "#fff", letterSpacing: "0.1em" }}>
           THRUST:
         </div>
-        <div style={{ fontSize: "2.2rem", fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.05 }}>
+        <div style={{ fontSize: "2.2rem", fontFamily: "monospace", fontWeight: 700, color: "#fff", lineHeight: 1.05 }}>
           {value}
         </div>
-        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>g</div>
+        <div style={{ fontSize: "12px", fontFamily: "sans-serif", color: "#fff" }}>g</div>
       </div>
     </div>
   );
@@ -116,59 +218,131 @@ function RPMGauge({ value, max = 10000 }) {
   };
 
   const needleDeg = startDeg + sweepDeg * pct;
+  const needleLen = r - 12;
   const needleTip = {
-    x: cx + (r - 12) * Math.cos(toRad(needleDeg)),
-    y: cy + (r - 12) * Math.sin(toRad(needleDeg)),
+    x: cx + needleLen * Math.cos(toRad(needleDeg)),
+    y: cy + needleLen * Math.sin(toRad(needleDeg)),
   };
+  const baseWidth = 5;
+  const baseLeft = {
+    x: cx - baseWidth * Math.sin(toRad(needleDeg)),
+    y: cy + baseWidth * Math.cos(toRad(needleDeg)),
+  };
+  const baseRight = {
+    x: cx + baseWidth * Math.sin(toRad(needleDeg)),
+    y: cy - baseWidth * Math.cos(toRad(needleDeg)),
+  };
+  const needlePoints = `${baseLeft.x},${baseLeft.y} ${needleTip.x},${needleTip.y} ${baseRight.x},${baseRight.y}`;
 
-  // Scale labels: 0,100,...,1000 mapped evenly
+  // Scale labels: 0, 100, ..., 1000
   const scaleLabels = [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
+  // Minor tick values (intermediate points)
+  const tickValues = [];
+  for (let v = 50; v < 1000; v += 50) tickValues.push(v);
+
+  // Zone boundaries: Green 0–60%, Yellow 60–80%, Red 80–100%
+  const greenEnd = 0.6;
+  const yellowEnd = 0.8;
 
   return (
     <div style={{ position: "relative", width: "164px", height: "164px", flexShrink: 0 }}>
-      <svg width="164" height="164" viewBox="0 0 164 164">
-        {/* Green zone track */}
+      <svg width="164" height="164" viewBox="0 0 164 164" shapeRendering="geometricPrecision">
+        {/* Green zone track (0–60%) */}
         <path
-          d={arcPath(startDeg, startDeg + sweepDeg * 0.72, r)}
+          d={arcPath(startDeg, startDeg + sweepDeg * greenEnd, r)}
           fill="none"
-          stroke="#0d2e0d"
+          stroke="#4CAF50"
           strokeWidth="11"
+          strokeLinecap="round"
         />
-        {/* Red zone track */}
+        {/* Yellow zone track (60–80%) */}
         <path
-          d={arcPath(startDeg + sweepDeg * 0.72, startDeg + sweepDeg, r)}
+          d={arcPath(startDeg + sweepDeg * greenEnd, startDeg + sweepDeg * yellowEnd, r)}
           fill="none"
-          stroke="#2e0d0d"
+          stroke="#FFC107"
           strokeWidth="11"
+          strokeLinecap="round"
         />
-        {/* Active green fill */}
-        {pct > 0 && pct <= 0.72 && (
+        {/* Red zone track (80–100%) */}
+        <path
+          d={arcPath(startDeg + sweepDeg * yellowEnd, startDeg + sweepDeg, r)}
+          fill="none"
+          stroke="#F44336"
+          strokeWidth="11"
+          strokeLinecap="round"
+        />
+
+        {/* Active fill – green only */}
+        {pct > 0 && pct <= greenEnd && (
           <path
             d={arcPath(startDeg, needleDeg, r)}
             fill="none"
-            stroke="#4caf50"
+            stroke="#4CAF50"
             strokeWidth="11"
+            strokeLinecap="round"
           />
         )}
-        {/* Active green + red fill */}
-        {pct > 0.72 && (
+        {/* Active fill – green + yellow */}
+        {pct > greenEnd && pct <= yellowEnd && (
           <>
             <path
-              d={arcPath(startDeg, startDeg + sweepDeg * 0.72, r)}
+              d={arcPath(startDeg, startDeg + sweepDeg * greenEnd, r)}
               fill="none"
-              stroke="#4caf50"
+              stroke="#4CAF50"
               strokeWidth="11"
+              strokeLinecap="round"
             />
             <path
-              d={arcPath(startDeg + sweepDeg * 0.72, needleDeg, r)}
+              d={arcPath(startDeg + sweepDeg * greenEnd, needleDeg, r)}
               fill="none"
-              stroke="#f44336"
+              stroke="#FFC107"
               strokeWidth="11"
+              strokeLinecap="round"
+            />
+          </>
+        )}
+        {/* Active fill – green + yellow + red */}
+        {pct > yellowEnd && (
+          <>
+            <path
+              d={arcPath(startDeg, startDeg + sweepDeg * greenEnd, r)}
+              fill="none"
+              stroke="#4CAF50"
+              strokeWidth="11"
+              strokeLinecap="round"
+            />
+            <path
+              d={arcPath(startDeg + sweepDeg * greenEnd, startDeg + sweepDeg * yellowEnd, r)}
+              fill="none"
+              stroke="#FFC107"
+              strokeWidth="11"
+              strokeLinecap="round"
+            />
+            <path
+              d={arcPath(startDeg + sweepDeg * yellowEnd, needleDeg, r)}
+              fill="none"
+              stroke="#F44336"
+              strokeWidth="11"
+              strokeLinecap="round"
             />
           </>
         )}
 
-        {/* Scale tick labels */}
+        {/* Minor tick marks */}
+        {tickValues.map((v) => {
+          const ang = startDeg + (sweepDeg * v) / 1000;
+          const outerR = r + 4;
+          const innerR = r - 2;
+          const ix = cx + innerR * Math.cos(toRad(ang));
+          const iy = cy + innerR * Math.sin(toRad(ang));
+          const ox = cx + outerR * Math.cos(toRad(ang));
+          const oy = cy + outerR * Math.sin(toRad(ang));
+          return (
+            <line key={v} x1={ix} y1={iy} x2={ox} y2={oy} stroke="#b8c5d0" strokeWidth="1" strokeLinecap="round" />
+          );
+        })}
+
+        {/* Scale labels – light grey/white */}
         {scaleLabels.map((label, i) => {
           const ang = startDeg + (sweepDeg * i) / (scaleLabels.length - 1);
           const tx = cx + (r + 14) * Math.cos(toRad(ang));
@@ -180,50 +354,56 @@ function RPMGauge({ value, max = 10000 }) {
               y={ty}
               textAnchor="middle"
               dominantBaseline="central"
-              fill="#5a8aaa"
+              fill="#b8c5d0"
               fontSize="7"
-              fontFamily="monospace"
+              fontFamily="sans-serif"
+              fontWeight="600"
+              letterSpacing="0.03em"
+              fontVariant="tabular-nums"
+              transform={`rotate(${ang + 90} ${tx} ${ty})`}
             >
               {label}
             </text>
           );
         })}
 
-        {/* RPM label inside top */}
-        <text x={cx} y={cy - r + 16} textAnchor="middle" fill="#7fb3d3" fontSize="9" fontFamily="sans-serif">
-          RPM:
-        </text>
-
-        {/* Needle */}
-        <line
-          x1={cx}
-          y1={cy}
-          x2={needleTip.x}
-          y2={needleTip.y}
-          stroke="#ff3333"
-          strokeWidth="2.5"
-          strokeLinecap="round"
+        {/* Needle – triangular, light grey/white (#E0E0E0) */}
+        <polygon
+          points={needlePoints}
+          fill="#E0E0E0"
+          stroke="#f0f0f0"
+          strokeWidth="0.8"
+          strokeLinejoin="round"
         />
 
-        {/* Center hub */}
-        <circle cx={cx} cy={cy} r="5.5" fill="#1a1a2e" stroke="#444" strokeWidth="1.5" />
+        {/* Center hub – light blue-grey (#8FADC7) */}
+        <circle cx={cx} cy={cy} r="5.5" fill="#8FADC7" stroke="#a0b8d0" strokeWidth="1" />
       </svg>
 
-      {/* RPM numeric value */}
+      {/* Center readout: RPM: (white) + value (green) */}
       <div
         style={{
           position: "absolute",
-          bottom: "10px",
+          top: "50%",
           left: "50%",
-          transform: "translateX(-50%)",
-          fontSize: "1.25rem",
-          fontWeight: 700,
-          color: "var(--text-primary)",
-          whiteSpace: "nowrap",
-          letterSpacing: "0.04em",
+          transform: "translate(-50%, -50%)",
+          textAlign: "center",
+          pointerEvents: "none",
         }}
       >
-        {value.toLocaleString()}
+        <div style={{ fontSize: "12px", fontFamily: "sans-serif", color: "#FFFFFF", letterSpacing: "0.08em", marginBottom: "2px" }}>RPM:</div>
+        <div
+          style={{
+            fontSize: "1.25rem",
+            fontFamily: "monospace",
+            fontWeight: 700,
+            color: "#fff",
+            lineHeight: 1.1,
+            letterSpacing: "0.04em",
+          }}
+        >
+          {value.toLocaleString()}
+        </div>
       </div>
     </div>
   );
@@ -246,7 +426,8 @@ function ElectricCard({ label, value, unit, batteryPct }) {
       {/* Label */}
       <div
         style={{
-          fontSize: "0.62rem",
+          fontSize: "12px",
+          fontFamily: "sans-serif",
           color: "var(--text-secondary)",
           letterSpacing: "0.1em",
           fontWeight: 600,
@@ -275,8 +456,9 @@ function ElectricCard({ label, value, unit, batteryPct }) {
               border: "1px solid #1e5a1e",
               borderRadius: "4px",
               padding: "2px 6px",
-              fontSize: "0.62rem",
-              color: "var(--accent-green)",
+              fontSize: "12px",
+              fontFamily: "monospace",
+              color: "#fff",
               fontWeight: 700,
               whiteSpace: "nowrap",
             }}
@@ -287,8 +469,9 @@ function ElectricCard({ label, value, unit, batteryPct }) {
         <span
           style={{
             fontSize: "1.8rem",
+            fontFamily: "monospace",
             fontWeight: 700,
-            color: "var(--text-primary)",
+            color: "#fff",
             lineHeight: 1,
             letterSpacing: "0.02em",
           }}
@@ -297,7 +480,8 @@ function ElectricCard({ label, value, unit, batteryPct }) {
         </span>
         <span
           style={{
-            fontSize: "0.9rem",
+            fontSize: "12px",
+            fontFamily: "sans-serif",
             fontWeight: 500,
             color: "var(--text-secondary)",
             lineHeight: 1,
@@ -319,12 +503,15 @@ export default function RealTimeData() {
     <div style={cardStyle}>
       <h2
         style={{
-          fontSize: "0.72rem",
+          fontSize: "14px",
+          fontFamily: "sans-serif",
           letterSpacing: "0.12em",
           color: "var(--text-secondary)",
           fontWeight: 700,
           textAlign: "center",
           flexShrink: 0,
+          margin: 0,
+          marginBottom: "2px",
         }}
       >
         REAL-TIME DATA

@@ -8,16 +8,18 @@ export default function IMUAnalysis() {
 
   return (
     <div style={{
-      background: "var(--bg-card)",
-      border: "1px solid var(--border)",
-      borderRadius: "10px",
-      padding: "14px",
+      background: "rgba(15, 23, 42, 0.7)",
+      border: "1px solid rgba(255, 255, 255, 0.1)",
+      borderRadius: "12px",
+      padding: "16px 18px",
       height: "100%",
       display: "flex",
       flexDirection: "column",
       gap: "10px",
+      backdropFilter: "blur(10px)",
+      WebkitBackdropFilter: "blur(10px)",
     }}>
-      <h2 style={{ fontSize: "0.75rem", letterSpacing: "0.12em", color: "var(--text-secondary)", fontWeight: 700, textAlign: "center" }}>
+      <h2 style={{ fontSize: "14px", fontFamily: "sans-serif", letterSpacing: "0.12em", color: "var(--text-secondary)", fontWeight: 700, textAlign: "center", margin: 0, marginBottom: "4px" }}>
         IMU & AI ANALYSIS
       </h2>
 
@@ -28,7 +30,7 @@ export default function IMUAnalysis() {
         </div>
 
         {/* Axis Values */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "0.75rem" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
           <AxisLabel axis="PITCH" value={pitch} color="#f44336" />
           <AxisLabel axis="ROLL" value={roll} color="#4caf50" />
           <AxisLabel axis="YAW" value={yaw} color="#2196f3" />
@@ -40,12 +42,12 @@ export default function IMUAnalysis() {
         background: "#0a2a0a",
         border: "1px solid #1a4a1a",
         borderRadius: "8px",
-        padding: "10px",
+        padding: "10px 12px",
       }}>
-        <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent-green)", marginBottom: "6px", letterSpacing: "0.08em" }}>
+        <div style={{ fontSize: "12px", fontFamily: "sans-serif", fontWeight: 700, color: "var(--accent-green)", marginBottom: "6px", letterSpacing: "0.08em" }}>
           AI INSIGHTS
         </div>
-        <div style={{ fontSize: "0.7rem", color: "#a0d0a0", lineHeight: 1.5 }}>
+        <div style={{ fontSize: "12px", fontFamily: "sans-serif", color: "#a0d0a0", lineHeight: 1.5 }}>
           Efficiency: 85% | Stable Operation | Predicted Max Thrust: 1200g
         </div>
       </div>
@@ -56,8 +58,8 @@ export default function IMUAnalysis() {
 function AxisLabel({ axis, value, color }) {
   return (
     <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-      <span style={{ color, fontWeight: 700, width: "40px", fontSize: "0.7rem" }}>{axis}:</span>
-      <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>{value}°</span>
+      <span style={{ color, fontFamily: "sans-serif", fontWeight: 700, width: "40px", fontSize: "12px" }}>{axis}:</span>
+      <span style={{ color: "#fff", fontFamily: "monospace", fontWeight: 700 }}>{value}°</span>
     </div>
   );
 }

@@ -276,8 +276,11 @@ export function WebSocketProvider({ children }) {
       setIsStreaming(false);
     };
 
-    ws.onerror = (e) => {
-      console.error("WebSocket connection failed:", e);
+    ws.onerror = () => {
+      console.warn(
+        `WebSocket connection failed to ${WS_CONFIG.WS_URL}. ` +
+        `Ensure backend is running: cd backend && uvicorn app:app --port 8000`
+      );
       setConnected(false);
     };
 
