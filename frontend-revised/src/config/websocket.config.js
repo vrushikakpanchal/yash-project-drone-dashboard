@@ -3,8 +3,12 @@
 // Real backend connection only - no mock data
 // ============================================================
 
-// Get base URL from environment, fallback to localhost
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+// Resolve backend URL for both localhost and LAN access.
+// If env is not set, reuse current browser hostname with backend port 8000.
+const runtimeHost =
+  typeof window !== "undefined" ? window.location.hostname : "localhost";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || `http://${runtimeHost}:8000`;
 
 export const WS_CONFIG = {
   USE_MOCK_DATA: false, // Real backend only

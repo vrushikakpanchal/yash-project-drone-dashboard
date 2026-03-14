@@ -201,7 +201,7 @@ function ThrustGauge({ value, max = 1200 }) {
 }
 
 // ── RPM SPEEDOMETER ──────────────────────────────────────────
-function RPMGauge({ value, max = 10000 }) {
+function RPMGauge({ value, max = 8000 }) {
   const pct = Math.min(Math.max(value / max, 0), 1);
   const cx = 82, cy = 82, r = 62;
   const startDeg = -220;
@@ -234,11 +234,12 @@ function RPMGauge({ value, max = 10000 }) {
   };
   const needlePoints = `${baseLeft.x},${baseLeft.y} ${needleTip.x},${needleTip.y} ${baseRight.x},${baseRight.y}`;
 
-  // Scale labels: 0, 100, ..., 1000
-  const scaleLabels = [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
-  // Minor tick values (intermediate points)
+  // Scale labels: 0, 1000, ..., 8000
+  const scaleLabels = [];
+  for (let v = 0; v <= max; v += 1000) scaleLabels.push(v);
+  // Minor tick values between each 1000 step
   const tickValues = [];
-  for (let v = 50; v < 1000; v += 50) tickValues.push(v);
+  for (let v = 500; v < max; v += 500) tickValues.push(v);
 
   // Zone boundaries: Green 0–60%, Yellow 60–80%, Red 80–100%
   const greenEnd = 0.6;
@@ -330,7 +331,7 @@ function RPMGauge({ value, max = 10000 }) {
 
         {/* Minor tick marks */}
         {tickValues.map((v) => {
-          const ang = startDeg + (sweepDeg * v) / 1000;
+          const ang = startDeg + (sweepDeg * v) / max;
           const outerR = r + 4;
           const innerR = r - 2;
           const ix = cx + innerR * Math.cos(toRad(ang));
@@ -344,7 +345,7 @@ function RPMGauge({ value, max = 10000 }) {
 
         {/* Scale labels – light grey/white */}
         {scaleLabels.map((label, i) => {
-          const ang = startDeg + (sweepDeg * i) / (scaleLabels.length - 1);
+          const ang = startDeg + (sweepDeg * label) / max;
           const tx = cx + (r + 14) * Math.cos(toRad(ang));
           const ty = cy + (r + 14) * Math.sin(toRad(ang));
           return (
@@ -402,7 +403,7 @@ function RPMGauge({ value, max = 10000 }) {
             letterSpacing: "0.04em",
           }}
         >
-          {value.toLocaleString()}
+          {value.toLocaleString(undefined, { maximumFractionDigits: 2 })}
         </div>
       </div>
     </div>

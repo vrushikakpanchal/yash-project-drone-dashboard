@@ -107,7 +107,7 @@ export default function DataLogGraph() {
                 <YAxis
                   yAxisId="rpm"
                   orientation="right"
-                  domain={[0, 10000]}
+                  domain={[0, 8000]}
                   tick={{ fill: "#2196f3", fontSize: 9 }}
                   tickLine={false}
                   axisLine={false}
