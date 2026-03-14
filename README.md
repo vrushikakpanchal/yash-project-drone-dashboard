@@ -1,223 +1,474 @@
-## AI-Enabled Drone Thrust Measurement System
+# AI Drone Thrust Measurement Dashboard
 
-### 1. Project idea
+An AI-enabled drone thrust measurement and monitoring dashboard that combines a **Python-based backend simulation + ML inference pipeline** with a **React/Next.js real-time visualization interface**.
 
-This project is a **dashboard for testing drone motors**.
-
-It shows:
-
-- How much **thrust** the motor is making (push/force)
-- How fast it is spinning (**RPM**)
-- How much **voltage, current, and power** it is using
-- Simple **AI-based health checks** that say if the motor looks normal, risky, or close to failure
-
-You open a web page, start the test, and see live gauges and charts that update in real time.
-
-The project has two main parts:
-
-- **Frontend (Next.js)** – the web page you see in the browser.
-- **Backend (FastAPI + ML microservices)** – the engine that creates data, runs AI models, and sends results to the frontend.
+The system simulates motor dynamics, performs AI-based anomaly and fault detection, and streams telemetry to a live dashboard for **thrust monitoring, electrical analysis, and health diagnostics**.
 
 ---
 
-### 2. What problem does it solve?
+# System Architecture
 
-Testing drone motors today often means:
+The project is divided into two primary layers.
 
-- Using separate tools (scales, meters, spreadsheets)
-- Writing down numbers by hand
-- Manually checking if values “look ok”
-- Spending a lot of time to understand when a motor is getting unhealthy
-
-This project solves that by:
-
-- Showing **all important values in one simple dashboard**
-- Updating the data **live**, many times each second
-- Using **AI models** in the background to:
-  - Spot strange patterns (anomalies)
-  - Estimate motor **health**
-  - Estimate **remaining useful life (RUL)**
-
-So an engineer, student, or hobbyist can **quickly see** if a drone motor is performing well or if there might be a problem.
-
----
-
-### 3. How it works 
-
-1. **Motor and sensors**  
-   A motor test stand (real or simulated) provides sensor values such as:
-   - Thrust
-   - RPM
-   - Voltage
-   - Current
-   - Power
-
-2. **Backend collects and analyzes data**  
-   The **backend** (FastAPI + Python ML code) does the following:
-   - Reads or simulates the sensor data at a regular speed using `get_motor_data_snapshot`
-   - Builds a “feature set” from these numbers
-   - Uses trained **AI/ML models** to:
-     - Estimate thrust
-     - Detect anomalies
-     - Estimate health and remaining life
-   - Keeps short histories of these values so they can be used for graphs
-
-3. **Backend exposes APIs and a WebSocket**  
-   The backend:
-   - Offers **HTTP endpoints** (URLs) for:
-     - Health checks
-     - Analysis data for charts
-     - Starting and stopping the live data stream
-   - Offers a **WebSocket** endpoint for:
-     - Pushing live sensor and analysis data to the frontend in real time
-
-4. **Frontend connects to the backend**  
-   The **frontend** (Next.js app) does this:
-   - Reads the backend URLs from environment variables
-   - Connects to the backend WebSocket at `/ws/motor-data`
-   - Sends a “start stream” request when you begin a test
-   - Listens for incoming data messages
-
-5. **Dashboard updates live**  
-   As data comes in from the backend:
-   - The dashboard updates:
-     - **Thrust gauge** (value in grams, g)
-     - **RPM gauge**
-     - **Voltage, current, and power** cards
-   - Other components show:
-     - AI health status
-     - Anomaly warnings
-     - Historical graphs and logs
-
-6. **User observes and decides**  
-   You watch:
-   - If thrust increases as expected
-   - If RPM, current, and power are in the right range
-   - If the AI says the motor is healthy or at risk  
-   Then you can change test conditions or stop the stream.
+```
+yash-project-drone-dashboard
+│
+├── backend/
+│   ├── app.py
+│   └── microservices/
+│       ├── src/
+│       ├── models/
+│       └── logs/
+│
+└── frontend-revised/
+    └── src/
+        ├── components/
+        ├── context/
+        └── app/
+```
 
 ---
 
-### 4. What inputs does the user give?
+# Backend (backend/)
 
-From a normal user point of view, inputs are simple:
+Responsible for **simulation, AI inference, and telemetry streaming**.
 
-- **Before running:**
-  - Make sure the backend is running on your machine
-  - Make sure the frontend `.env.local` file points to the backend (URL and port)
+### Key Components
 
-- **On the dashboard:**
-  - Use the **control panel** (`ControlStatus` component) to:
-    - Start the live data stream
-    - Stop the live data stream
-    - Trigger an emergency stop (sets throttle to 0 and fetches final analysis)
-  - Change **physical test conditions** on the rig (for example, throttle level) if you have a real motor setup
+- **API Server**  
+  `app.py` (FastAPI + WebSocket)
 
-You do **not** need to write code to use the dashboard after it is set up.
+- **Realtime Simulation + Inference Engine**  
+  `microservices/src/realtime_pi_inference.py`
 
----
+- **ML Models and Scalers**  
+  `microservices/models/*.pkl`
 
-### 5. What outputs does the user see?
+### Backend Outputs
 
-On the dashboard you see:
-
-- **Real-time gauges**
-  - **Thrust gauge** in grams (g)
-  - **RPM gauge** showing how fast the motor spins
-
-- **Electrical readings**
-  - **Voltage** (V)
-  - **Current** (A)
-  - **Power** (W)
-
-- **AI analysis panels** 
-  - Motor **health score**
-  - **Anomaly status** (normal / warning / abnormal)
-  - **Remaining useful life** estimate
-  - Fault type information (if the model supports it)
-
-- **Graphs and logs**
-  - Historical plots of values over time
-  - Logs that can be used for deeper analysis
-
-If the backend is not running or not reachable, gauges stay at zero and the page may show errors in the browser console.
+- WebSocket telemetry stream → `/ws/motor-data`
+- Session analysis data → `/analysis-data`
+- CSV log → `microservices/logs/health_log.csv`
 
 ---
 
-### 6. Key features
+# Frontend (frontend-revised/)
 
-- **Live dashboard**  
-  See thrust, RPM, and electrical values that update automatically.
+Responsible for **real-time monitoring, visualization, and AI insights display**.
 
-- **AI-powered health checks**  
-  AI models watch the data and flag abnormal behavior and motor wear.
+### Core Components
 
-- **Combined view**  
-  All important information is in one place: no manual copying into spreadsheets.
+| Component | Purpose |
+|--------|--------|
+| WebSocketContext.jsx | WebSocket lifecycle and data orchestration |
+| RealTimeData.jsx | Live thrust and RPM gauges |
+| DataLogGraph.jsx | Trend charts and telemetry logs |
+| ControlStatus.jsx | Throttle control and simulation start/stop |
+| IMUAnalysis.jsx | IMU visualization and AI insights |
 
-- **Web-based**  
-  Runs in a browser. You can use it on the same computer as the test stand or across a local network (if configured).
+### 3D Visualization Components
 
-- **Data logging and graphs**  
-  Stores and shows past values for better understanding, not just instant snapshots.
-
----
-
-### 7. Real-world applications
-
-Some ways this project can be used:
-
-- **Drone motor testing benches** – check motor performance under different loads.
-- **R&D labs** – experiment with new motor and propeller combinations.
-- **Production quality control** – quickly screen motors before shipping.
-- **Education and training** – teach students about thrust, power, and predictive maintenance.
-- **Field diagnostics** – debug strange behavior in drones by simulating or replaying runs.
+```
+src/components/imu3d/
+├── IMUDronePanel.jsx
+├── DroneScene.jsx
+└── DroneModel.jsx
+```
 
 ---
 
-### 8. System overview 
+# Backend Mechanism
 
-#### 8.1 Frontend (Next.js)
+## Model Initialization
 
-- Located in the `frontend-revised` folder.
-- Built with **Next.js** (React).
-- Main page file:  
-  - `src/app/page.jsx` – defines the dashboard layout:
-    - Title: “AI-Enabled Drone Thrust Measurement System”
-    - Left sidebar: `ControlStatus` component
-    - Main area: `RealTimeData`, `IMUAnalysis`, and `DataLogGraph`
-- Key components (inside `src/components`):
-  - `ControlStatus.jsx` – controls to start/stop streaming, change throttle, and show connection status.
-  - `RealTimeData.jsx` – shows thrust, RPM, and electric readings using gauges and cards.
-  - `DataLogGraph.jsx` – shows time-series graphs and logs (historical view).
-  - `IMUAnalysis.jsx` and `AnalysisCharts.jsx` – show analysis and chart views.
-- Uses a **WebSocket context**:
-  - `WebSocketContext` in `src/context/WebSocketContext.jsx` manages:
-    - The WebSocket connection to the backend (`WS_CONFIG.WS_URL`)
-    - HTTP calls to `/start-stream`, `/stop-stream`, and `/analysis-data`
-    - Shared `sensorData`, `throttle`, `logs`, `history`, and analysis data for all components.
+During startup, the backend loads trained ML models and scalers:
 
-#### 8.2 Backend (FastAPI + microservices)
+- thrust_model
+- anomaly_model
+- fault_model
 
-- Located in the `backend` folder.
-- Main FastAPI app:
-  - File: `backend/app.py`
-  - Run with: `uvicorn app:app --reload`
-- The backend does:
-  - Loads environment variables using `python-dotenv`.
-  - Sets up **CORS** (cross-origin settings) so the frontend can talk to it:
-    - Allowed origins are taken from `ALLOWED_ORIGINS` (default `http://localhost:3000`).
-  - Uses a `WebSocketManager` class to:
-    - Track active WebSocket connections
-    - Start and stop the real-time data stream
-    - Keep analysis buffers for thrust, anomaly, and health over time
-  - Calls helper code under `backend/microservices/src` to:
-    - Generate or read motor data snapshots via `get_motor_data_snapshot`
-    - Run AI/ML models (for thrust, anomalies, health, RUL, etc.)
+Feature metadata is loaded from:
 
-- Main backend technologies:
-  - **FastAPI** for HTTP and WebSocket endpoints
-  - **Uvicorn** for running the server
-  - **Pandas, NumPy, scikit-learn, joblib** for AI and data handling
+```
+model_metadata.json
+```
 
+Runtime state variables include:
 
+- throttle
+- current_rpm
+- health history buffers
+- degradation history
+
+---
+
+# Motor Dynamics Simulation
+
+The frontend sends **throttle commands (0–100%)** through WebSocket.
+
+Backend calculates target RPM:
+
+```
+target_rpm = (throttle / 100) * 8000
+```
+
+Smooth motor response:
+
+```
+current_rpm += (target_rpm - current_rpm) * 0.15
+```
+
+Noise is added to simulate real-world motor behavior.
+
+---
+
+# Electrical and Physics Modeling
+
+Each telemetry cycle computes electrical and mechanical parameters.
+
+### Current Model
+
+```
+base_current = (rpm / MAX_RPM)^2 * 20
+```
+
+### Voltage Sag
+
+```
+base_voltage = 14.8 - current * 0.04
+```
+
+### Electrical Power
+
+```
+power = voltage * current
+```
+
+### Vibration Model
+
+```
+vibration ≈ 0.00008 * rpm + noise
+```
+
+### Temperature Model
+
+```
+temperature = 25 + current * 0.5 + noise
+```
+
+### Thrust Model
+
+```
+thrust_kgf = (rpm / MAX_RPM)^2 * 2.0
+```
+
+Small measurement noise is introduced for realism.
+
+---
+
+# Feature Engineering
+
+The backend constructs ML features from telemetry.
+
+### Raw Features
+
+- rpm
+- voltage_v
+- current_a
+- power_w
+- vibration_rms
+- temperature_c
+
+### Derived Features
+
+- thrust_gradient
+- current_gradient
+
+These features are used for ML inference.
+
+---
+
+# AI Inference Pipeline
+
+Each telemetry packet passes through multiple AI analysis stages.
+
+### 1. Thrust Prediction
+Regression model estimates thrust.
+
+### 2. Anomaly Detection
+Outputs:
+- anomaly prediction
+- severity score
+
+### 3. Health Monitoring
+
+System health adjusts dynamically:
+
+- anomalies decrease health
+- normal behavior slowly recovers health
+
+### 4. Degradation Trend Classification
+
+Possible states:
+
+- STABLE
+- WARN SLOW DEGRADATION
+- WARN RAPID DEGRADATION
+
+### 5. Fault Classification
+
+Possible faults:
+
+- Normal
+- Bearing Fault
+- Overcurrent Fault
+- Propeller Imbalance
+
+### 6. Remaining Useful Life (RUL)
+
+Estimated from historical degradation patterns.
+
+---
+
+# Data Logging
+
+Each telemetry cycle writes a row to:
+
+```
+microservices/logs/health_log.csv
+```
+
+Logged fields include:
+
+- timestamp
+- rpm
+- thrust
+- anomaly severity
+- health score
+- degradation trend
+- fault type
+- RUL estimate
+
+UTF-8 encoding ensures cross-platform compatibility.
+
+---
+
+# FastAPI Service Layer
+
+### REST Endpoints
+
+| Endpoint | Purpose |
+|--------|--------|
+| /health | Backend health check |
+| /start-stream | Start telemetry streaming |
+| /stop-stream | Stop telemetry streaming |
+| /analysis-data | Retrieve session analysis |
+| /get-data | System metadata and status |
+
+---
+
+# WebSocket Endpoint
+
+```
+/ws/motor-data
+```
+
+Responsibilities:
+
+- receive throttle commands from frontend
+- broadcast telemetry packets
+- support multiple client connections
+
+---
+
+# Streaming Loop
+
+`WebSocketManager._stream_motor_data()` performs:
+
+1. Generate motor telemetry snapshot
+2. Append packet to session analysis buffers
+3. Broadcast telemetry packet to clients
+4. Sleep until next cycle
+
+This creates **continuous real-time telemetry streaming**.
+
+---
+
+# Frontend Real-Time Flow
+
+## WebSocket Context
+
+`WebSocketContext.jsx` manages:
+
+- backend discovery and fallback
+- websocket connection lifecycle
+- automatic reconnect
+- throttle transmission
+- payload normalization
+- UI smoothing
+- analysis retrieval after simulation
+
+---
+
+# Control and Visualization UI
+
+### Control Panel
+
+`ControlStatus.jsx`
+
+Features:
+
+- throttle slider
+- start simulation
+- stop simulation
+- emergency stop
+
+---
+
+### Live Dashboard
+
+`RealTimeData.jsx`
+
+Displays:
+
+- thrust gauge
+- RPM gauge
+- voltage
+- current
+- power metrics
+
+---
+
+### Trend Analysis
+
+`DataLogGraph.jsx`
+
+Provides:
+
+- live telemetry charts
+- textual log feed
+- session analysis charts
+
+---
+
+# IMU and AI Visualization
+
+## Data Source Handling
+
+`IMUAnalysis.jsx` maps telemetry data to the IMU panel.
+
+Behavior:
+
+- uses real IMU values when available
+- simulated IMU fallback during streaming
+- neutral orientation when idle
+
+---
+
+# 3D Drone Visualization
+
+Uses:
+
+- three.js
+- @react-three/fiber
+- @react-three/drei
+
+### Interaction
+
+- Left drag → orbit
+- Right drag → pan
+- Scroll → zoom
+- Reset camera button
+
+### Orientation Mapping
+
+```
+Roll  -> Z axis
+Pitch -> X axis
+Yaw   -> Y axis
+```
+
+Damped rotation updates ensure stable motion.
+
+---
+
+# AI Insights Panel
+
+The IMU panel displays diagnostic insights:
+
+- anomaly status
+- severity level
+- health percentage
+- remaining useful life
+- detected fault type
+
+Color-coded indicators highlight anomaly severity.
+
+---
+
+# End-to-End Real-Time Workflow
+
+1. User adjusts throttle in UI
+2. Throttle command is sent via WebSocket
+3. Backend updates motor simulation
+4. Motor physics and electrical behavior are simulated
+5. AI inference evaluates system health
+6. Backend broadcasts telemetry packet
+7. Frontend receives and normalizes values
+8. Gauges, charts, and IMU visualization update
+9. After simulation stop, session analysis becomes available
+
+---
+
+# Engineering Safeguards
+
+The system includes reliability mechanisms:
+
+- streaming loop protected from runtime failures
+- fallback logic for missing fault labels
+- UTF-8 logging compatibility
+- backend URL fallback handling
+- automatic WebSocket reconnection
+- responsive UI safeguards
+
+---
+
+# System Concept
+
+This platform represents a **digital twin + AI monitoring stack**.
+
+### Control Layer
+User throttle input.
+
+### Physical Simulation Layer
+
+Simulates:
+
+- RPM
+- current
+- voltage
+- thrust
+- vibration
+- temperature
+
+### AI Diagnostics Layer
+
+Performs:
+
+- anomaly detection
+- fault classification
+- health monitoring
+- RUL estimation
+
+### Visualization Layer
+
+Displays:
+
+- thrust gauges
+- electrical metrics
+- trend charts
+- 3D IMU scene
+
+### Analytics Layer
+
+Session analysis provides deeper diagnostic insights after simulation.
