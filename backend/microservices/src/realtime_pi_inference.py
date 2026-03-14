@@ -3,12 +3,19 @@ import joblib
 import json
 import pandas as pd
 import numpy as np
+import warnings
 from collections import deque
 import os 
 from datetime import datetime
 
 throttle = 0
 current_rpm = 0
+
+warnings.filterwarnings(
+    "ignore",
+    message=r"`sklearn\.utils\.parallel\.delayed` should be used with `sklearn\.utils\.parallel\.Parallel`.*",
+    category=UserWarning,
+)
 
 def set_throttle(new_value):
     """Safely updates the global throttle from external modules"""
@@ -18,7 +25,7 @@ def set_throttle(new_value):
 os.makedirs("microservices/logs", exist_ok=True)
 log_file_path = "microservices/logs/health_log.csv"
 if not os.path.exists(log_file_path):
-    with open(log_file_path, "w") as f:
+    with open(log_file_path, "w", encoding="utf-8") as f:
         f.write("timestamp,rpm,thrust,severity,health,trend,fault_type,rul\n")
 
 fault_model = joblib.load("microservices/models/fault_classifier.pkl")
@@ -29,6 +36,13 @@ thrust_scaler = joblib.load("microservices/models/scaler.pkl")
 
 anomaly_model = joblib.load("microservices/models/anomaly_model.pkl")
 anomaly_scaler = joblib.load("microservices/models/anomaly_scaler.pkl")
+
+for model in (fault_model, anomaly_model):
+    if hasattr(model, "set_params"):
+        try:
+            model.set_params(n_jobs=1)
+        except ValueError:
+            pass
 
 with open("microservices/models/model_metadata.json") as f:
     metadata = json.load(f)
@@ -121,9 +135,9 @@ def check_health_trend():
     trend = health_history[-1] - health_history[0]
 
     if trend < -10:
-        return "⚠ RAPID DEGRADATION"
+        return "WARN RAPID DEGRADATION"
     elif trend < -3:
-        return "⚠ SLOW DEGRADATION"
+        return "WARN SLOW DEGRADATION"
     else:
         return "STABLE"
     
@@ -166,7 +180,7 @@ def log_data(rpm, thrust, severity, health, trend, fault_type, rul):
 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    with open(log_file_path, "a") as f:
+    with open(log_file_path, "a", encoding="utf-8") as f:
         f.write(
             f"{timestamp},{rpm},{thrust:.4f},{severity:.4f},"
             f"{health:.2f},{trend},{fault_type},{rul:.2f}\n"

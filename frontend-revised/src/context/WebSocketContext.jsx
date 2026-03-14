@@ -202,6 +202,8 @@ export function WebSocketProvider({ children }) {
   const backendBaseRef = useRef(WS_CONFIG.API_BASE);
   const shouldStreamRef = useRef(false);
   const reconnectTimerRef = useRef(null);
+  const targetDataRef = useRef(sensorData);
+  const smoothTimerRef = useRef(null);
 
   // ── Append one data point ──────────────────────────────────
   const appendData = useCallback((data) => {
@@ -209,7 +211,12 @@ export function WebSocketProvider({ children }) {
     const logEntry =
       `${ts} | Thrust: ${data.thrust}g | RPM: ${data.rpm} | ` +
       `${data.voltage}V ${data.current}A | ${data.anomaly_status}`;
-    setSensorData(data);
+    targetDataRef.current = data;
+    setSensorData((prev) => ({
+      ...prev,
+      anomaly_status: data.anomaly_status,
+      fault_type: data.fault_type,
+    }));
     setLogs((p)     => [logEntry, ...p].slice(0, 200));
     setHistory((p)  => [...p, { time: ts, thrust: data.thrust, rpm: data.rpm }].slice(-150));
   }, []);
@@ -469,6 +476,48 @@ export function WebSocketProvider({ children }) {
       wsRef.current.send(JSON.stringify({ type: "throttle", value: throttle }));
     }
   }, [throttle]);
+
+  // Smoothly move displayed values toward latest backend snapshot.
+  useEffect(() => {
+    const smoothKeys = [
+      "thrust", "rpm", "voltage", "current", "power",
+      "pitch", "roll", "yaw", "severity", "health", "rul",
+      "vibration", "temperature",
+    ];
+
+    if (smoothTimerRef.current) {
+      clearInterval(smoothTimerRef.current);
+      smoothTimerRef.current = null;
+    }
+
+    if (!isStreaming) {
+      setSensorData((prev) => ({ ...prev, ...targetDataRef.current }));
+      return;
+    }
+
+    smoothTimerRef.current = setInterval(() => {
+      const target = targetDataRef.current;
+      setSensorData((prev) => {
+        const next = { ...prev, anomaly_status: target.anomaly_status, fault_type: target.fault_type };
+        for (const key of smoothKeys) {
+          const cur = Number(prev[key] ?? 0);
+          const tgt = Number(target[key] ?? cur);
+          const delta = tgt - cur;
+          const gain = Math.abs(delta) > 120 ? 0.3 : 0.2;
+          const value = cur + delta * gain;
+          next[key] = Math.abs(delta) < 0.01 ? tgt : value;
+        }
+        return next;
+      });
+    }, 50);
+
+    return () => {
+      if (smoothTimerRef.current) {
+        clearInterval(smoothTimerRef.current);
+        smoothTimerRef.current = null;
+      }
+    };
+  }, [isStreaming]);
 
   return (
     <WebSocketContext.Provider

@@ -18,6 +18,7 @@ const cardStyle = {
 // ── THRUST ARC GAUGE ─────────────────────────────────────────
 function ThrustGauge({ value, max = 1200 }) {
   const pct = Math.min(Math.max(value / max, 0), 1);
+  const displayValue = Number.isFinite(value) ? Number(value).toFixed(1) : "0.0";
   const cx = 85, cy = 85, r = 68;
   const startDeg = -220;
   const sweepDeg = 260;
@@ -192,7 +193,7 @@ function ThrustGauge({ value, max = 1200 }) {
           THRUST:
         </div>
         <div style={{ fontSize: "2.2rem", fontFamily: "monospace", fontWeight: 700, color: "#fff", lineHeight: 1.05 }}>
-          {value}
+          {displayValue}
         </div>
         <div style={{ fontSize: "12px", fontFamily: "sans-serif", color: "#fff" }}>g</div>
       </div>

@@ -121,7 +121,7 @@ class WebSocketManager:
                     print(f"[STREAM] Non-fatal streaming error: {self.last_stream_error}")
                     traceback.print_exc()
 
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(0.15)
         except asyncio.CancelledError:
             pass
 
@@ -186,7 +186,7 @@ async def start_stream():
         "status": "success",
         "message": "Motor data streaming started",
         "websocket_url": "/ws/motor-data",
-        "frequency": "2Hz"
+        "frequency": "~6.7Hz"
     }
 
 @app.post("/stop-stream")
